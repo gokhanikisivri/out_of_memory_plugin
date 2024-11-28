@@ -48,21 +48,9 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(title: Text('Memory Warning Example')),
         body: Column(
           children: [
-            // Center(
-            //   child: FutureBuilder<Map<String, int>>(
-            //     future: OutOfMemoryPlugin.getMemoryInfo(),
-            //     builder: (context, snapshot) {
-            //       if (!snapshot.hasData) {
-            //         return CircularProgressIndicator();
-            //       }
-            //       final memoryInfo = snapshot.data!;
-            //       return Text('Memory Info: $memoryInfo');
-            //     },
-            //   ),
-            // ),
-            Text('Memory Total: ${memoryInfo?["total"]}'),
-            Text('Memory Used: ${memoryInfo?["used"]}'),
-            Text('Memory Free: ${memoryInfo?["free"]}'),
+            Text('Memory Total: ${memoryInfo?["totalMemory"]}'),
+            Text('Memory applicationUsedMemory: ${memoryInfo?["applicationUsedMemory"]}'),
+            Text('Memory availableMemory: ${memoryInfo?["availableMemory"]}'),
             ElevatedButton(onPressed: _getMemoryInfo, child: Text("Memory Bilgilerini Yenile")),
             ElevatedButton(onPressed: triggerOutOfMemory, child: Text("Memory+")),
           ],

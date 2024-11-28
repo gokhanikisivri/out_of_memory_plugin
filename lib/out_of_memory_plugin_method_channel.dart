@@ -10,8 +10,13 @@ class MethodChannelOutOfMemoryPlugin extends OutOfMemoryPluginPlatform {
 
   @override
   Future<Map<String, int>> getMemoryInfo() async {
-    final memoryInfo = await _methodChannel.invokeMapMethod<String, int>('getMemoryInfo');
-    return memoryInfo ?? {"used": -1, "free": -1, "total": -1};
+    var defaultValue = {"used": -1, "free": -1, "total": -1};
+    try {
+      var memoryInfo = await _methodChannel.invokeMapMethod<String, int>('getMemoryInfo');
+      return memoryInfo ?? defaultValue;
+    } on PlatformException catch (e) {
+      return defaultValue;
+    }
   }
 
   @override

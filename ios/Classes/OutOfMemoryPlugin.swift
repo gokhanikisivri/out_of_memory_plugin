@@ -23,35 +23,67 @@ public class OutOfMemoryPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
     }
 
     private func getMemoryInfo() -> [String: Int64] {
+      // Uygulamanın kullandığı bellek
+        var applicationUsedMemory: Int64 = 0
+
+        // Cihazın toplam bellek
+        let totalMemory = ProcessInfo.processInfo.physicalMemory
+        let totalMemoryInMB = Int64(totalMemory) / 1024 / 1024 // Toplam bellek MB cinsinden
+
+        // Bellek bilgilerini almak için gerekli yapı
+        var info = mach_task_basic_info()
+        var count = mach_msg_type_number_t(MemoryLayout<mach_task_basic_info>.size / 4)
+
+        // Uygulamanın kullandığı bellek bilgisi alınıyor
+        let kerr: kern_return_t = withUnsafeMutablePointer(to: &info) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+                task_info(
+                    mach_task_self_,
+                    task_flavor_t(MACH_TASK_BASIC_INFO),
+                    $0,
+                    &count
+                )
+            }
+        }
+
+        if kerr == KERN_SUCCESS {
+            // Uygulamanın kullandığı bellek, resident_size
+            applicationUsedMemory = Int64(info.resident_size) / 1024 / 1024 // MB cinsinden
+        }
+
+        // Cihazın boş bellek bilgisi (host_statistics64 ile)
         var stats = vm_statistics64()
-        let HOST_VM_INFO64_COUNT = UInt32(MemoryLayout<vm_statistics64_data_t>.size / MemoryLayout<integer_t>.size) // Sabiti tanımlayın
-        var count = HOST_VM_INFO64_COUNT
+        let HOST_VM_INFO64_COUNT = UInt32(MemoryLayout<vm_statistics64_data_t>.size / MemoryLayout<integer_t>.size)
+        var countStats = HOST_VM_INFO64_COUNT
         let hostPort = mach_host_self()
 
-        // `stats` için pointer oluştur ve dönüştür
         let statsPointer = withUnsafeMutablePointer(to: &stats) {
             UnsafeMutableRawPointer($0).assumingMemoryBound(to: integer_t.self)
         }
 
-        guard host_statistics64(hostPort, HOST_VM_INFO64, statsPointer, &count) == KERN_SUCCESS else {
+        // Cihazın boş belleğini alıyoruz
+        guard host_statistics64(hostPort, HOST_VM_INFO64, statsPointer, &countStats) == KERN_SUCCESS else {
             return ["used": -1, "free": -1, "total": -1]
         }
 
         let pageSize = vm_kernel_page_size
-        let free = Int64(stats.free_count) * Int64(pageSize)
-        let active = Int64(stats.active_count) * Int64(pageSize)
-        let inactive = Int64(stats.inactive_count) * Int64(pageSize)
-        let wired = Int64(stats.wire_count) * Int64(pageSize)
-        let used = active + inactive + wired
-        let total = used + free
 
-        // MB cinsinden döndürme
-        let usedMB = used / 1024 / 1024
-        let freeMB = free / 1024 / 1024
-        let totalMB = total / 1024 / 1024
+        let freeMemory = Int64(stats.free_count) * Int64(pageSize) // Boş bellek
+        // İnaktif bellek hesaplanıyor ve toplam kullanılabilir bellekten düşülüyor
+        let inactiveMemory = Int64(stats.inactive_count) * Int64(pageSize)
 
-        return ["used": usedMB, "free": freeMB, "total": totalMB]
+        // Kullanılabilir bellek, free ve inactive belleklerin toplamıdır
+        let availableMemory = freeMemory + inactiveMemory
+        let availableMemoryInMB = availableMemory / 1024 / 1024
+
+        // Sonuçları döndürüyoruz
+        return [
+            "applicationUsedMemory": applicationUsedMemory,        // Uygulamanın kullandığı bellek
+            "availableMemory": availableMemoryInMB,    // Kullanılabilir bellek
+            "totalMemory": totalMemoryInMB   // Cihazın toplam belleği
+        ]
     }
+
 
     // MARK: - FlutterStreamHandler Methods
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
