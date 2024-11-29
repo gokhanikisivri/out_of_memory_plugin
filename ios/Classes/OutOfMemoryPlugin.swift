@@ -16,13 +16,17 @@ public class OutOfMemoryPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         if call.method == "getMemoryInfo" {
-            result(getMemoryInfo())
+            do {
+                result(try getMemoryInfo())
+            } catch {
+                result(["applicationUsedMemory": -1, "availableMemory": -1, "totalMemory": -1])
+            }
         } else {
             result(FlutterMethodNotImplemented)
         }
     }
 
-    private func getMemoryInfo() -> [String: Int64] {
+    private func getMemoryInfo() throws -> [String: Int64] {
       // Uygulamanın kullandığı bellek
         var applicationUsedMemory: Int64 = 0
 
@@ -63,7 +67,7 @@ public class OutOfMemoryPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
 
         // Cihazın boş belleğini alıyoruz
         guard host_statistics64(hostPort, HOST_VM_INFO64, statsPointer, &countStats) == KERN_SUCCESS else {
-            return ["used": -1, "free": -1, "total": -1]
+            return ["applicationUsedMemory": -1, "availableMemory": -1, "totalMemory": -1]
         }
 
         let pageSize = vm_kernel_page_size
