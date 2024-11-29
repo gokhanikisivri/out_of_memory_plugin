@@ -24,7 +24,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  Map<String, int>? memoryInfo;
+  MemoryInformationResult? memoryInfo;
 
   Future<void> _getMemoryInfo() async {
     var info = await OutOfMemoryPlugin.getMemoryInfo();
@@ -48,9 +48,9 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(title: Text('Memory Warning Example')),
         body: Column(
           children: [
-            Text('Memory Total: ${memoryInfo?["totalMemory"]}'),
-            Text('Memory applicationUsedMemory: ${memoryInfo?["applicationUsedMemory"]}'),
-            Text('Memory availableMemory: ${memoryInfo?["availableMemory"]}'),
+            Text('Memory Total: ${memoryInfo?.totalMemory}'),
+            Text('Memory applicationUsedMemory: ${memoryInfo?.applicationUsedMemory}'),
+            Text('Memory availableMemory: ${memoryInfo?.availableMemory}'),
             ElevatedButton(onPressed: _getMemoryInfo, child: Text("Memory Bilgilerini Yenile")),
             ElevatedButton(onPressed: triggerOutOfMemory, child: Text("Memory+")),
           ],
