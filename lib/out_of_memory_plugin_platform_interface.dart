@@ -19,8 +19,14 @@ abstract class OutOfMemoryPluginPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  /// Method for getting memory info (to be implemented by platforms)
+  /// Raw memory figures from the native side (MB).
   Future<Map<String, int>> getMemoryInfo();
+
+  /// Raw report about how the previous run of the app ended.
+  Future<Map<String, dynamic>> getPreviousSessionReport();
+
+  /// Records that the app is about to exit on purpose.
+  Future<void> markCleanExit();
 
   /// Stream for memory warning events
   Stream<String> get onMemoryWarning;

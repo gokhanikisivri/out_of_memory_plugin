@@ -1,7 +1,8 @@
 name: out_of_memory_plugin
-description: "A new Flutter plugin project."
-version: 0.0.1
-homepage:
+description: "iOS memory info and detection of out-of-memory (jetsam) terminations that Firebase Crashlytics cannot report."
+version: 2.0.0
+homepage: https://github.com/gokhanikisivri/out_of_memory_plugin
+publish_to: none
 
 environment:
   sdk: ^3.5.4
